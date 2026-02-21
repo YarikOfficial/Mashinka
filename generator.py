@@ -35,11 +35,13 @@ def gen_func_line(func = None, length = 10, discretisation = 1, do_negative = Fa
         b = func["args"][1]
 
         if do_negative == True:
-            for x in range(length/2,length/2,1/discretisation):
-                y[x] = a*x+b
+            for x in range(-round(length/2),round(length/2)+1,1):
+                for i in range(x,x+discretisation+1,1):
+                    y.append(a*(x+(i/discretisation))+b)
         else:
-            for x in range(0,length,1):
-                y.append(a*x+b)
+            for x in range(0,length+1,1):
+                for i in range(x,x+discretisation+1,1):
+                    y.append(a*(x+(i/discretisation))+b)
 
     elif func["type"] == "power":
         stepen = func["args"][0]
@@ -47,11 +49,13 @@ def gen_func_line(func = None, length = 10, discretisation = 1, do_negative = Fa
         b = func["args"][2]
 
         if do_negative == True:
-            for x in range(length/2,length/2,1/discretisation):
-                y[x] = a*pow(x,stepen)+b
+            for x in range(-round(length/2),round(length/2)+1,1):
+                for i in range(x,x+discretisation+1):
+                    y.append(a*pow((x+(i/discretisation)),stepen)+b)
         else:
-            for x in range(0,length,1/discretisation):
-                y[x] = a*pow(x,stepen)+b
+            for x in range(0,length+1,1):
+                for i in range(x,x+discretisation+1,1):
+                    y.append(a*pow((x+(i/discretisation)),stepen)+b)
 
     elif func["type"] == "root":
         stepen = func["args"][0]
@@ -59,33 +63,45 @@ def gen_func_line(func = None, length = 10, discretisation = 1, do_negative = Fa
         b = func["args"][2]
 
         if do_negative == True:
-            for x in range(length/2,length/2,1/discretisation):
-                y[x] = a*pow(x,1/stepen)+b
+            for x in range(-round(length/2),round(length/2)+1,1):
+                for i in range(x,x+discretisation+1,1):
+                    try:
+                        y.append(a*pow((x+(i/discretisation)),1/stepen)+b)
+                    except:
+                        continue
         else:
-            for x in range(0,length,1/discretisation):
-                y[x] = a*pow(x,1/stepen)+b
+            for x in range(0,length+1,1):
+                for i in range(x,x+discretisation+1,1):
+                    try:
+                        y.append(a*pow((x+(i/discretisation)),1/stepen)+b)
+                    except:
+                        continue
 
     elif func["type"] == "sin":
         a = func["args"][0]
         b = func["args"][1]
 
         if do_negative == True:
-            for x in range(length/12,length/12,1/(6*discretisation)):
-                y[x] = a*sin(x)+b
+            for x in range(-round(length/12),round(length/12),1):
+                for i in range(x,x+discretisation*6+1,1):
+                    y.append(a*sin(x+(i/discretisation))+b)
         else:
-            for x in range(0,length/6,1/(6*discretisation)):
-                y[x] = a*sin(x)+b
+            for x in range(0,round(length/6),1):
+                for i in range(x,x+discretisation*6+1,1):
+                    y.append(a*sin(x+(i/discretisation))+b)
 
     elif func["type"] == "cos":
         a = func["args"][0]
         b = func["args"][1]
 
         if do_negative == True:
-            for x in range(length/12,length/12,1/(6*discretisation)):
-                y[x] = a*cos(x)+b
+            for x in range(-round(length/12),round(length/12),1):
+                for i in range(x,x+discretisation*6+1,1):
+                    y.append(a*cos(x+(i/discretisation))+b)
         else:
-            for x in range(0,length/6,1/(6*discretisation)):
-                y[x] = a*cos(x)+b
+            for x in range(0,round(length/6),1):
+                for i in range(x,x+discretisation*6+1,1):
+                    y.append(a*cos(x+(i/discretisation))+b)
 
     else:
         raise ValueError("Некорректный тип функции")
@@ -96,7 +112,7 @@ def gen_func_line(func = None, length = 10, discretisation = 1, do_negative = Fa
         return y
     
 def test():
-    func = {"type":"linear","args":[2,0]}
+    func = {"type":"cos","args":[1,0]}
     length = 100
     discretisation = 10
     
@@ -112,3 +128,9 @@ test()
 
 #и сразу в ячейку применять тоже
 #значит везде append проставить надо будет
+
+#===
+
+#исправил добавление значения везде
+#исправил дискретизацию
+#исправил обработку отрицательных
