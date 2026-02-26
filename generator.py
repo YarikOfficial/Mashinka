@@ -2,7 +2,7 @@ import numpy as np
 from math import pow,sin,cos
 import matplotlib.pyplot as plt
 
-def gen_func_line(func = None, length = 10, discretisation = 1, do_negative = False, return_data = False):
+def np_gen_func_line(func = None, length = 10, discretisation = 1, do_negative = False, return_data = False):
     """
     Генератор ряда на основе математический функции.\n
     Поддерживается на данный момент:\n
@@ -25,103 +25,71 @@ def gen_func_line(func = None, length = 10, discretisation = 1, do_negative = Fa
     return_data - пока не готово\n
     """
 
-    y = []
+    y = None
 
-    if func == None:
-        raise ValueError("Не выбран тип функции")
-    
-    elif func["type"] == "linear":
-        a = func["args"][0]
-        b = func["args"][1]
 
-        if do_negative == True:
-            for x in range(-round(length/2),round(length/2)+1,1):
-                for i in range(x,x+discretisation+1,1):
-                    y.append(a*(x+(i/discretisation))+b)
+    #Генератор последовательности
+    try:
+        if(do_negative == True):
+            x = np.linspace(-round(length/2),round(length/2),discretisation*length+1,endpoint=True,dtype=np.float64)
+        elif(do_negative == False):
+            x = np.linspace(0,length,discretisation*length+1,endpoint=True,dtype=np.float64)
         else:
-            for x in range(0,length+1,1):
-                for i in range(x,x+discretisation+1,1):
-                    y.append(a*(x+(i/discretisation))+b)
+            raise ValueError("Некорректный выбор режима!\n")
+    except Exception as e:
+        print(f"Ошибка создания аргументов числовой последовательности!\n=====\n{e}")
+        return None
 
-    elif func["type"] == "power":
-        stepen = func["args"][0]
-        a = func["args"][1]
-        b = func["args"][2]
+    #Получение значений
+    try:
+        if func == None:
+            raise ValueError("Не выбран тип функции!\n")
+        
+        elif func["type"] == "linear":
+            a = func["args"][0]
+            b = func["args"][1]
 
-        if do_negative == True:
-            for x in range(-round(length/2),round(length/2)+1,1):
-                for i in range(x,x+discretisation+1):
-                    y.append(a*pow((x+(i/discretisation)),stepen)+b)
+            y = a*x+b
+
+        elif func["type"] == "power":
+            stepen = func["args"][0]
+            a = func["args"][1]
+            b = func["args"][2]
+
+            y = a*np.pow(x,stepen)+b
+
+        elif func["type"] == "root":
+            stepen = func["args"][0]
+            a = func["args"][1]
+            b = func["args"][2]
+
+            y = a*np.pow(x,1/stepen)+b
+
         else:
-            for x in range(0,length+1,1):
-                for i in range(x,x+discretisation+1,1):
-                    y.append(a*pow((x+(i/discretisation)),stepen)+b)
+            raise ValueError("Некорректный тип функции!\n")
+    except Exception as e:
+        print(f"Ошибка создания значений числовой последовательности!\n=====\n{e}")
+        return None
+        
 
-    elif func["type"] == "root":
-        stepen = func["args"][0]
-        a = func["args"][1]
-        b = func["args"][2]
-
-        if do_negative == True:
-            for x in range(-round(length/2),round(length/2)+1,1):
-                for i in range(x,x+discretisation+1,1):
-                    try:
-                        y.append(a*pow((x+(i/discretisation)),1/stepen)+b)
-                    except:
-                        continue
-        else:
-            for x in range(0,length+1,1):
-                for i in range(x,x+discretisation+1,1):
-                    try:
-                        y.append(a*pow((x+(i/discretisation)),1/stepen)+b)
-                    except:
-                        continue
-
-    elif func["type"] == "sin":
-        a = func["args"][0]
-        b = func["args"][1]
-
-        if do_negative == True:
-            for x in range(-round(length/12),round(length/12),1):
-                for i in range(x,x+discretisation*6+1,1):
-                    y.append(a*sin(x+(i/discretisation))+b)
-        else:
-            for x in range(0,round(length/6),1):
-                for i in range(x,x+discretisation*6+1,1):
-                    y.append(a*sin(x+(i/discretisation))+b)
-
-    elif func["type"] == "cos":
-        a = func["args"][0]
-        b = func["args"][1]
-
-        if do_negative == True:
-            for x in range(-round(length/12),round(length/12),1):
-                for i in range(x,x+discretisation*6+1,1):
-                    y.append(a*cos(x+(i/discretisation))+b)
-        else:
-            for x in range(0,round(length/6),1):
-                for i in range(x,x+discretisation*6+1,1):
-                    y.append(a*cos(x+(i/discretisation))+b)
-
-    else:
-        raise ValueError("Некорректный тип функции")
-    
     if return_data == False:
         return y
-    else:
+    elif return_data == True: #не готово
         return y
-    
-def test():
-    func = {"type":"cos","args":[1,0]}
-    length = 100
-    discretisation = 10
-    
-    dataline = gen_func_line(func,length,discretisation)
+    else:
+        print("Ну тут вообще RuntimeError, но ладно, прощаю\n")
+        return y
 
-    plt.plot(dataline)
-    plt.show()
+# def test():
+#     func = {"type":"power","args":[1,0]}
+#     length = 16
+    
+#     dataline = np_gen_func_line(func,length)
 
-test()
+#     plt.plot(dataline)
+#     plt.show()
+
+# test()
 
 #питон не умеет считать по нецелым, это печельно
 #убрал на тесте, потом что-нибудь придумать
@@ -134,3 +102,9 @@ test()
 #исправил добавление значения везде
 #исправил дискретизацию
 #исправил обработку отрицательных
+
+
+#===
+
+#Переделал на np вид
+#убрал синусы нахуй, потом мб добавлю
