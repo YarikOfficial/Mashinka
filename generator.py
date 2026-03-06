@@ -57,6 +57,10 @@ def np_gen_func_line(func = None, length = 10, discretisation = 1, do_negative =
             y = a*x+b
 
         elif func["type"] == "power":
+            #если степень (-1,1), слать нахуй
+            #если она меньше 0, то у нас число наше будет 1/x
+            #если чётная, и x <0, то брать как -(|x|^stepen)
+            #если нечётная, то и так вроде должен пахать
             stepen = func["args"][0]
             a = func["args"][1]
             b = func["args"][2]
@@ -64,6 +68,8 @@ def np_gen_func_line(func = None, length = 10, discretisation = 1, do_negative =
             y = a*np.pow(x,stepen)+b
 
         elif func["type"] == "root":
+            #если она опять же (-1,1), слать нахуй
+            #остальные правила примерно тоже описаны, так что делаем, потом
             stepen = func["args"][0]
 
             if stepen == 0:
@@ -347,11 +353,10 @@ def data_to_pd(dataline, dataline_noise, dataline_miss, data):
     return df
 
 # def test():
-#     func_line = {"type":"linear","args":[2,2]}
-#     func_wave = {"type":"linear","args":[2,2]}
-#     N = 10
+#     func_line = {"type":"power","args":[0.2,1,0]}
+#     func_wave = {"type":"sin","args":[1,0]}
     
-#     dataline,data = np_gen_func_line(func_line,N,1,False)
+#     dataline,data = np_gen_func_line(func_line,20,5,True)
 #     #datawave = np_gen_func_wave(func_wave,10,10)
 #     if dataline is None or data is None:
 #         raise RuntimeError("\nОшибка получения последовательности!\n")
@@ -368,6 +373,9 @@ def data_to_pd(dataline, dataline_noise, dataline_miss, data):
 #     print(df[["noise_abs_delta", "miss_abs_delta_from_clean"]].describe())
 
 # test()
+
+# print(np.pow(10,-3))
+# print(np.pow(10,-1/5))
 
 #питон не умеет считать по нецелым, это печельно
 #убрал на тесте, потом что-нибудь придумать
