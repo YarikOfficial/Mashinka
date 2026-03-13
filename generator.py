@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def np_gen_func_line(func = None, length = 10, discretisation = 1, do_negative = False):
+def np_gen_func_line(func = None, length = 10, discretisation = 1,):
     """
     Генератор ряда на основе математический функции.\n
     Поддерживается на данный момент:\n
@@ -35,12 +35,7 @@ def np_gen_func_line(func = None, length = 10, discretisation = 1, do_negative =
 
     #Генератор последовательности
     try:
-        if(do_negative == True):
-            x = np.linspace(-round(length/2),round(length/2),discretisation*length+1,endpoint=True,dtype=np.float64)
-        elif(do_negative == False):
-            x = np.linspace(0,length,discretisation*length+1,endpoint=True,dtype=np.float64)
-        else:
-            raise ValueError("\nНекорректный выбор режима!\n")
+        x = np.linspace(0,length,discretisation*length+1,endpoint=True,dtype=np.float64)
     except Exception as e:
         print(f"Ошибка создания аргументов числовой последовательности!\n=====\n{e}")
         return None, None
@@ -87,7 +82,7 @@ def np_gen_func_line(func = None, length = 10, discretisation = 1, do_negative =
         return None, None
         
     data = {}
-    data.update({"TOTALlen":len(y),"length":length,"discr":discretisation,"type":func["type"],"x_line":x})
+    data.update({"TOTALlen":len(y),"length":length,"discr":discretisation,"type":func["type"],"x_line":x,"x_clear":np.arange(length+1)})
     
     return y, data
 
@@ -159,7 +154,7 @@ def np_gen_func_wave(func = None, length = 10, accuracy = 1):
         return None, None
         
     data = {}
-    data.update({"TOTALlen":len(y),"length":length,"acc":16*accuracy,"type":func["type"],"x_line":x})
+    data.update({"TOTALlen":len(y),"length":length,"acc":16*accuracy,"type":func["type"],"x_line":x,"x_clear":np.arange(length+1)})
     
     return y, data
 
@@ -183,6 +178,8 @@ def get_miss(y, data = None, mode = 0, count = 0, seed = 993):
     count = int(count)
     seed = int(seed)
 
+    new_y = np.copy(y)
+
     if data is None:
         raise RuntimeError("\nПотерял дату? ИДИ И ИЩИ!\n")
     
@@ -190,14 +187,14 @@ def get_miss(y, data = None, mode = 0, count = 0, seed = 993):
         raise ValueError(f"\nНеверный режим работы!\nmode - {mode}\n")
 
     if count == 0: #ну вроде логично, как бы
-        return y, data
+        vkid = None
+        data.update({"where":vkid,"seed_mis":seed,"mode":mode})
+        return new_y, data
     
     if count < 0:
         raise ValueError(f"\nНекорректное кол-во вбросов\ncount - {count}")
     
     #Создание вбросов
-    new_y = np.copy(y)
-    
     where = mode%10
     which = mode//10
 
@@ -256,11 +253,14 @@ def get_noise(y, data = None, strength = 0.05, sleek = 10, seed = 993):
     #Защита
     sleek = int(sleek)
 
+    new_y = np.copy(y)
+
     if data is None:
         raise RuntimeError("\nПотерял дату? ИДИ И ИЩИ!\n")
     
     if strength == 0:
-        return y, data
+        data.update({"strength":strength,"seed_noise":seed,"sleek":sleek})
+        return new_y, data
     
     if strength < 0:
         raise ValueError(f"\nНекорректное значение разброса\nstrength - {strength}\n")
@@ -270,8 +270,6 @@ def get_noise(y, data = None, strength = 0.05, sleek = 10, seed = 993):
 
     #Создание шума
     try:
-        new_y = np.copy(y)
-        
         rand = np.random.default_rng(seed)
 
         noise = np.linspace(0,strength,sleek+1,endpoint=True,dtype=np.float64)
@@ -286,25 +284,25 @@ def get_noise(y, data = None, strength = 0.05, sleek = 10, seed = 993):
 
     return new_y, data
 
-def draw_plots(dataline, dataline_noise, dataline_miss, data):
+def draw_plots(data):
     fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
 
     x = data["x_line"]
 
-    axes[0].plot(x, dataline, label="Чистый ряд", linewidth=2)
+    axes[0].plot(x, data["dataline"], label="Чистый ряд", color="blue", linewidth=2)
     axes[0].set_title("Чистая последовательность")
     axes[0].set_ylabel("y")
     axes[0].grid(True, alpha=0.3)
     axes[0].legend()
 
-    axes[1].plot(x, dataline_noise, label="Шум", linewidth=1.8)
+    axes[1].plot(x, data["dataline_noise"], label="Шум", color="orange", linewidth=1.8)
     axes[1].set_title("Последовательность с шумом")
     axes[1].set_ylabel("y")
     axes[1].grid(True, alpha=0.3)
     axes[1].legend()
 
-    axes[2].plot(x, dataline_miss, label="Шум + выбросы", linewidth=1.8)
-    axes[2].scatter(x[data["where"]], dataline_miss[data["where"]], label="Выбросы", s=35)
+    axes[2].plot(x, data["dataline_miss"], label="Шум + выбросы", color="red", linewidth=1.8)
+    axes[2].scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Выбросы", color="black", s=35, zorder=3)
     axes[2].set_title("Последовательность с выбросами")
     axes[2].set_xlabel("x")
     axes[2].set_ylabel("y")
@@ -314,16 +312,16 @@ def draw_plots(dataline, dataline_noise, dataline_miss, data):
     plt.tight_layout()
     plt.show()
 
-def draw_one_plot(dataline, dataline_noise, dataline_miss, data):
+def draw_one_plot(data):
     fig, ax = plt.subplots(figsize=(12, 6))
 
     x = data["x_line"]
     
-    ax.plot(x, dataline, label="Чистый ряд", color="blue", linewidth=2)
-    ax.plot(x, dataline_noise, label="С шумом", color="orange", linewidth=1.8)
-    ax.plot(x, dataline_miss, label="С выбросами", color="red", linewidth=1.8)
+    ax.plot(x, data["dataline"], label="Чистый ряд", color="blue", linewidth=2)
+    ax.plot(x, data["dataline_noise"], label="С шумом", color="orange", linewidth=1.8)
+    ax.plot(x, data["dataline_miss"], label="С выбросами", color="red", linewidth=1.8)
 
-    ax.scatter(x[data["where"]], dataline_miss[data["where"]], label="Точки выбросов", color="black", s=35, zorder=3)
+    ax.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Точки выбросов", color="black", s=35, zorder=3)
 
     ax.set_title("Сравнение последовательностей")
     ax.set_xlabel("x")
@@ -334,8 +332,11 @@ def draw_one_plot(dataline, dataline_noise, dataline_miss, data):
     plt.tight_layout()
     plt.show()
 
-def data_to_pd(dataline, dataline_noise, dataline_miss, data):
-    df = pd.DataFrame({"x": data["x_line"], "clean": dataline, "noise": dataline_noise, "miss": dataline_miss})
+def data_get_pd(data = None):
+    if data is None:
+        raise RuntimeError("\nПотерял дату? ИДИ И ИЩИ!\n")
+
+    df = pd.DataFrame({"x": data["x_line"], "clean": data["dataline"], "noise": data["dataline_noise"], "miss": data["dataline_miss"]})
 
     df["noise_delta"] = df["noise"] - df["clean"]
     df["miss_delta_from_noise"] = df["miss"] - df["noise"]
@@ -350,32 +351,72 @@ def data_to_pd(dataline, dataline_noise, dataline_miss, data):
     df["is_miss"] = 0
     df.loc[data["where"], "is_miss"] = 1
 
-    return df
+    data.update({"df":df})
 
+def get_data(func = None, type = None, length = None, scaling = None, strength = None, sleek = None, mode = None, count = None, seed = 993):
+    """
+    Передайте все аргументы для функций ниже.\n
+    Нужны:
+    1) Сама функция
+    2) Её тип
+    3) Желаемая длина
+    4) Желаемое растягивание (точность)
+    5) Сила шума
+    6) Растяжимость шума
+    7) Режим внесения вброса
+    8) Кол-во вбросов
+    9) Сид (по желанию)\n
+    Подробнее написано в самих функциях\n
+    """
+
+    if func is None or type is None or length is None or scaling is None or strength is None or sleek is None or mode is None or count is None:
+        raise ValueError("\nУмник, функция необходима, всё остальное тоже!\n")
+    
+    if type == "L":
+        dataline, data = np_gen_func_line(func,length,scaling)
+    elif type == "W":
+        dataline, data = np_gen_func_wave(func,length,scaling)
+    else:
+        raise ValueError(f"\nНекорректный тип функции!\ntype - {type}\n")
+    
+    if dataline is None or data is None:
+        raise RuntimeError("\nОшибка получения последовательности!\n")
+    
+    dataline_noise, data = get_noise(dataline,data,strength,sleek,seed)
+    
+    if dataline_noise is None or data is None:
+        raise RuntimeError("\nОшибка внесения шума в последовательность!\n")
+    
+    dataline_miss, data = get_miss(dataline_noise,data,mode,count,seed)
+
+    if dataline_miss is None or data is None:
+        raise RuntimeError("\nОшибка внесения вбросов в последовательность!\n")
+
+    data.update({"dataline":dataline,"dataline_noise":dataline_noise,"dataline_miss":dataline_miss})
+
+    data_get_pd(data)
+
+    return data
+
+def draw_data(data = None, type = None):
+    if data is None:
+        raise RuntimeError("\nПотерял дату? ИДИ И ИЩИ!\n")
+
+    if type == 1:
+        draw_one_plot(data)
+    elif type == 3:
+        draw_plots(data)
+    else:
+        raise ValueError(f"\nНекорректный тип отрисовки!\ntype - {type}\n")
+    
 # def test():
-#     func_line = {"type":"power","args":[0.2,1,0]}
-#     func_wave = {"type":"sin","args":[1,0]}
-    
-#     dataline,data = np_gen_func_line(func_line,20,5,True)
-#     #datawave = np_gen_func_wave(func_wave,10,10)
-#     if dataline is None or data is None:
-#         raise RuntimeError("\nОшибка получения последовательности!\n")
-    
-#     dataline_noise, data = get_noise(dataline,data,0.1,1)
-#     dataline_miss, data = get_miss(dataline_noise,data,21,3)
+#     data = get_data(func={"type":"power","args":[2.6667,0.45,-3.2]},type="L",length=100,scaling=10,strength=0.1,sleek=10,mode=11,count=10,seed=111)
 
-#     draw_one_plot(dataline,dataline_noise,dataline_miss,data)
+#     print(data)
 
-#     df = data_to_pd(dataline,dataline_noise,dataline_miss,data)
-
-#     print(df)
-#     print("\n")
-#     print(df[["noise_abs_delta", "miss_abs_delta_from_clean"]].describe())
+#     draw_data(data,3)
 
 # test()
-
-# print(np.pow(10,-3))
-# print(np.pow(10,-1/5))
 
 #питон не умеет считать по нецелым, это печельно
 #убрал на тесте, потом что-нибудь придумать
@@ -399,3 +440,8 @@ def data_to_pd(dataline, dataline_noise, dataline_miss, data):
 #сделал генератор шума
 #сделал почти всё
 #пофиксил некоторое дерьмо
+
+#===
+
+#сделал общую дату
+#сделал общие функции
