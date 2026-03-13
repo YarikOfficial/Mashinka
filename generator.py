@@ -243,11 +243,15 @@ def get_miss(y, data = None, mode = 0, count = 0, seed = 993):
 
     return new_y, data
 
-def get_noise(y, data = None, strength = 0.05, sleek = 10, seed = 993):
+def get_noise(y, data = None, mode = None, strength = 0.05, sleek = 10, seed = 993):
     """
     Создания шума в последовательности\n
+    mode - тип шума\n
     strength - предел шума\n
-    sleek - дробность предела
+    sleek - дробность предела\n
+    mode:
+    1 - +/- strength от значения
+    2 - +/- strength от mean
     """
 
     #Защита
@@ -274,8 +278,14 @@ def get_noise(y, data = None, strength = 0.05, sleek = 10, seed = 993):
 
         noise = np.linspace(0,strength,sleek+1,endpoint=True,dtype=np.float64)
 
-        new_y = new_y + rand.choice([-1,1],size=new_y.shape) * rand.choice(noise,size=new_y.shape) * new_y
-
+        if mode == 1:
+            new_y = new_y + rand.choice([-1,1],size=new_y.shape) * rand.choice(noise,size=new_y.shape) * new_y
+        elif mode == 2:
+            mean = new_y.mean()
+            new_y = new_y + rand.choice([-1,1],size=new_y.shape) * rand.choice(noise,size=new_y.shape) * mean
+        else:
+            raise ValueError(f"\nНекорретный режив внесения шума!\nmode - {mode}\n")
+            
     except Exception as e:
         print(f"Ошибка внесения шума!\n=====\n{e}")
         return None, None
@@ -353,41 +363,40 @@ def data_get_pd(data = None):
 
     data.update({"df":df})
 
-def get_data(func = None, type = None, length = None, scaling = None, strength = None, sleek = None, mode = None, count = None, seed = 993):
+def get_data(func = None, length = None, scaling = None, mode_noise = None, strength = None, sleek = None, mode_miss = None, count = None, seed_noise = 993, seed_miss = 993):
     """
     Передайте все аргументы для функций ниже.\n
     Нужны:
     1) Сама функция
-    2) Её тип
-    3) Желаемая длина
-    4) Желаемое растягивание (точность)
-    5) Сила шума
-    6) Растяжимость шума
-    7) Режим внесения вброса
-    8) Кол-во вбросов
-    9) Сид (по желанию)\n
+    2) Желаемая длина
+    3) Желаемое растягивание (точность)
+    4) Сила шума
+    5) Растяжимость шума
+    6) Режим внесения вброса
+    7) Кол-во вбросов
+    8) Сид (по желанию)\n
     Подробнее написано в самих функциях\n
     """
 
-    if func is None or type is None or length is None or scaling is None or strength is None or sleek is None or mode is None or count is None:
+    if func is None or length is None or scaling is None or strength is None or sleek is None or mode_miss is None or mode_noise is None or count is None:
         raise ValueError("\nУмник, функция необходима, всё остальное тоже!\n")
     
-    if type == "L":
-        dataline, data = np_gen_func_line(func,length,scaling)
-    elif type == "W":
-        dataline, data = np_gen_func_wave(func,length,scaling)
+    if func["type"] == "linear" or func["type"] == "root" or func["type"] == "power":
+        dataline, data = np_gen_func_line(func=func,length=length,discretisation=scaling)
+    elif func["type"] == "sin" or func["type"] == "cos" or func["type"] == "tan":
+        dataline, data = np_gen_func_wave(func=func,length=length,accuracy=scaling)
     else:
-        raise ValueError(f"\nНекорректный тип функции!\ntype - {type}\n")
+        raise ValueError(f"\nНекорректный тип функции!\ntype - {func["type"]}\n")
     
     if dataline is None or data is None:
         raise RuntimeError("\nОшибка получения последовательности!\n")
     
-    dataline_noise, data = get_noise(dataline,data,strength,sleek,seed)
+    dataline_noise, data = get_noise(dataline,data=data,mode=mode_noise,strength=strength,sleek=sleek,seed=seed_noise)
     
     if dataline_noise is None or data is None:
         raise RuntimeError("\nОшибка внесения шума в последовательность!\n")
     
-    dataline_miss, data = get_miss(dataline_noise,data,mode,count,seed)
+    dataline_miss, data = get_miss(dataline_noise,data=data,mode=mode_miss,count=count,seed=seed_miss)
 
     if dataline_miss is None or data is None:
         raise RuntimeError("\nОшибка внесения вбросов в последовательность!\n")
@@ -410,7 +419,7 @@ def draw_data(data = None, type = None):
         raise ValueError(f"\nНекорректный тип отрисовки!\ntype - {type}\n")
     
 # def test():
-#     data = get_data(func={"type":"power","args":[2.6667,0.45,-3.2]},type="L",length=100,scaling=10,strength=0.1,sleek=10,mode=11,count=10,seed=111)
+#     data = get_data(func={"type":"root","args":[2.6667,0.45,-3.2]},length=100,scaling=10,mode_noise=1,strength=0.1,sleek=10,mode_miss=11,count=10,seed_noise=111,seed_miss=993)
 
 #     print(data)
 
