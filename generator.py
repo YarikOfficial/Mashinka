@@ -339,7 +339,7 @@ def draw_one_plot(data, data_analysed = None):
     ax.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Точки выбросов", color="black", s=35, zorder=4)
 
     if data_analysed is not None:
-        ax.plot(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=35, zorder=5)
+        ax.scatter(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=35, zorder=5)
 
     ax.set_title("Сравнение последовательностей")
     ax.set_xlabel("x")
@@ -415,14 +415,14 @@ def get_data(func = None, length = None, scaling = None, mode_noise = None, stre
 
     return data
 
-def draw_data(data = None, type = None):
+def draw_data(data = None, type = None, data_analysed = None):
     if data is None:
         raise RuntimeError("\nПотерял дату? ИДИ И ИЩИ!\n")
 
     if type == 1:
-        draw_one_plot(data)
+        draw_one_plot(data, data_analysed)
     elif type == 3:
-        draw_plots(data)
+        draw_plots(data, data_analysed)
     else:
         raise ValueError(f"\nНекорректный тип отрисовки!\ntype - {type}\n")
     
