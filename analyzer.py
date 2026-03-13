@@ -1,5 +1,10 @@
 import numpy as np
+import pandas as pd
 
+def get_z_score(X):
+    
+
+def find_outliers
 
 if __name__ == '__main__':
     import generator as gen
