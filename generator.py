@@ -294,8 +294,11 @@ def get_noise(y, data = None, mode = None, strength = 0.05, sleek = 10, seed = 9
 
     return new_y, data
 
-def draw_plots(data):
-    fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
+def draw_plots(data, data_analysed = None):
+    if data_analysed is not None:
+        fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
+    else:
+        fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
 
     x = data["x_line"]
 
@@ -313,6 +316,8 @@ def draw_plots(data):
 
     axes[2].plot(x, data["dataline_miss"], label="Шум + выбросы", color="red", linewidth=1.8)
     axes[2].scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Выбросы", color="black", s=35, zorder=3)
+    if data_analysed is not None:
+        axes[2].scatter(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=35, zorder=4)
     axes[2].set_title("Последовательность с выбросами")
     axes[2].set_xlabel("x")
     axes[2].set_ylabel("y")
@@ -322,16 +327,19 @@ def draw_plots(data):
     plt.tight_layout()
     plt.show()
 
-def draw_one_plot(data):
+def draw_one_plot(data, data_analysed = None):
     fig, ax = plt.subplots(figsize=(12, 6))
 
     x = data["x_line"]
     
-    ax.plot(x, data["dataline"], label="Чистый ряд", color="blue", linewidth=2)
-    ax.plot(x, data["dataline_noise"], label="С шумом", color="orange", linewidth=1.8)
-    ax.plot(x, data["dataline_miss"], label="С выбросами", color="red", linewidth=1.8)
+    ax.plot(x, data["dataline"], label="Чистый ряд", color="lime", linewidth=2, zorder=3)
+    ax.plot(x, data["dataline_noise"], label="С шумом", color="blue", linewidth=1.5, zorder=2)
+    ax.plot(x, data["dataline_miss"], label="С выбросами", color="red", linewidth=1.5, zorder=1)
 
-    ax.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Точки выбросов", color="black", s=35, zorder=3)
+    ax.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Точки выбросов", color="black", s=35, zorder=4)
+
+    if data_analysed is not None:
+        ax.plot(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=35, zorder=5)
 
     ax.set_title("Сравнение последовательностей")
     ax.set_xlabel("x")
@@ -418,14 +426,16 @@ def draw_data(data = None, type = None):
     else:
         raise ValueError(f"\nНекорректный тип отрисовки!\ntype - {type}\n")
     
-# def test():
-#     data = get_data(func={"type":"root","args":[2.6667,0.45,-3.2]},length=100,scaling=10,mode_noise=1,strength=0.1,sleek=10,mode_miss=11,count=10,seed_noise=111,seed_miss=993)
+def test():
+    data = get_data(func={"type":"root","args":[2.6667,0.45,-3.2]},length=100,scaling=10,mode_noise=1,strength=0.1,sleek=10,mode_miss=11,count=10,seed_noise=111,seed_miss=993)
 
-#     print(data)
+    print(data["df"].head())
 
-#     draw_data(data,3)
+    draw_data(data,3)
 
-# test()
+
+
+test()
 
 #питон не умеет считать по нецелым, это печельно
 #убрал на тесте, потом что-нибудь придумать
