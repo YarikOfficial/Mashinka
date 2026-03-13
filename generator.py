@@ -415,14 +415,14 @@ def get_data(func = None, length = None, scaling = None, mode_noise = None, stre
 
     return data
 
-def draw_data(data = None, type = None):
+def draw_data(data = None, type = None, data_analysed = None):
     if data is None:
         raise RuntimeError("\nПотерял дату? ИДИ И ИЩИ!\n")
 
     if type == 1:
-        draw_one_plot(data)
+        draw_one_plot(data, data_analysed)
     elif type == 3:
-        draw_plots(data)
+        draw_plots(data, data_analysed)
     else:
         raise ValueError(f"\nНекорректный тип отрисовки!\ntype - {type}\n")
     
