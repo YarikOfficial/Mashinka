@@ -339,7 +339,7 @@ def draw_one_plot(data, data_analysed = None):
     ax.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Точки выбросов", color="black", s=35, zorder=4)
 
     if data_analysed is not None:
-        ax.plot(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=35, zorder=5)
+        ax.scatter(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=35, zorder=5)
 
     ax.set_title("Сравнение последовательностей")
     ax.set_xlabel("x")
