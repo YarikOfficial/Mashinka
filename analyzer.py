@@ -28,7 +28,7 @@ if __name__ == '__main__':
     import generator as gen
     import matplotlib.pyplot as plt
 
-    data = gen.get_data(func={"type":"root","args":[2.6667,0.45,-3.2]},length=100,scaling=10,mode_noise=1,strength=0.1,sleek=10,mode_miss=11,count=10,seed_noise=111,seed_miss=993)
+    data = gen.get_data(func={"type":"linear","args":[2,0]},length=100,scaling=10,mode_noise=2,strength=1.5,sleek=100,mode_miss=11,count=1,seed_noise=111,seed_miss=993)
     dataline = data["dataline_miss"]
 
     outliers = find_outliers(dataline, threshold=3, split=5)

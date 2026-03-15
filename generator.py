@@ -187,7 +187,7 @@ def get_miss(y, data = None, mode = 0, count = 0, seed = 993):
         raise ValueError(f"\nНеверный режим работы!\nmode - {mode}\n")
 
     if count == 0: #ну вроде логично, как бы
-        vkid = None
+        vkid = np.array([0])
         data.update({"where":vkid,"seed_mis":seed,"mode":mode})
         return new_y, data
     
@@ -315,9 +315,9 @@ def draw_plots(data, data_analysed = None):
     axes[1].legend()
 
     axes[2].plot(x, data["dataline_miss"], label="Шум + выбросы", color="red", linewidth=1.8)
-    axes[2].scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Выбросы", color="black", s=35, zorder=3)
+    axes[2].scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Выбросы", color="black", s=36, zorder=3)
     if data_analysed is not None:
-        axes[2].scatter(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=35, zorder=4)
+        axes[2].scatter(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=20, zorder=4)
     axes[2].set_title("Последовательность с выбросами")
     axes[2].set_xlabel("x")
     axes[2].set_ylabel("y")
@@ -336,10 +336,10 @@ def draw_one_plot(data, data_analysed = None):
     ax.plot(x, data["dataline_noise"], label="С шумом", color="blue", linewidth=1.5, zorder=2)
     ax.plot(x, data["dataline_miss"], label="С выбросами", color="red", linewidth=1.5, zorder=1)
 
-    ax.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Точки выбросов", color="black", s=35, zorder=4)
+    ax.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Точки выбросов", color="black", s=36, zorder=4)
 
     if data_analysed is not None:
-        ax.scatter(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=35, zorder=5)
+        ax.scatter(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=20, zorder=5)
 
     ax.set_title("Сравнение последовательностей")
     ax.set_xlabel("x")
@@ -430,11 +430,11 @@ def draw_data(data = None, type = None, data_analysed = None):
 
 if __name__ == "__main__":
     def test():
-        data = get_data(func={"type":"root","args":[2.6667,0.45,-3.2]},length=100,scaling=10,mode_noise=1,strength=0.1,sleek=10,mode_miss=11,count=10,seed_noise=111,seed_miss=993)
+        data = get_data(func={"type":"linear","args":[2,0]},length=10,scaling=10,mode_noise=2,strength=0.25,sleek=5,mode_miss=12,count=5,seed_noise=111,seed_miss=993)
 
         print(data["df"].head())
 
-        draw_data(data,3)
+        draw_data(data,1)
     test()
 
 #питон не умеет считать по нецелым, это печельно
