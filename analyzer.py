@@ -1,7 +1,13 @@
 import numpy as np
 import pandas as pd
 
-def get_z_score(X):
+def get_z_score(X: np.ndarray) -> np.ndarray:
+    """
+    Генерирует Z-Score из массива данных.
+    Получает: X - Данные
+    Возвращает: Z-Score
+    """
+
     mean = np.mean(X)
     std = np.std(X)
 
@@ -9,7 +15,17 @@ def get_z_score(X):
     
     return z_score
     
-def find_outliers(X, threshold = 3, split = 1):
+def find_outliers(X: np.ndarray, threshold:int = 3, split:int = 1) -> np.ndarray:
+    """
+    Находит выбросы в массиве данных с помощью метода "3-х Сигм" (Z-Score)
+    Получает: 
+        X - Данные
+        threshold - Значение Сигма
+        split - Разбиение массива данных
+    Возвращает:
+        Маску выбросов
+    """
+
     pl = len(X) // split
     outliers = X != X
     for i in range(split):
@@ -32,6 +48,6 @@ if __name__ == '__main__':
     dataline = data["dataline_miss"]
 
     outliers = find_outliers(dataline, threshold=3, split=5)
-
+    print(type(outliers))
     gen.draw_data(data, 1, outliers)
 
