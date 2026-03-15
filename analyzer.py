@@ -15,7 +15,7 @@ def get_z_score(X: np.ndarray) -> np.ndarray:
     
     return z_score
     
-def find_outliers(X: np.ndarray, threshold:int = 3, split:int = 1) -> np.ndarray:
+def find_outliers(X: np.ndarray, threshold:float = 3.0, split:int = 1) -> np.ndarray:
     """
     Находит выбросы в массиве данных с помощью метода "3-х Сигм" (Z-Score)\n
     Получает:\n
