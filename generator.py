@@ -339,7 +339,7 @@ def draw_one_plot(data, data_analysed = None):
     ax.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Точки выбросов", color="black", s=35, zorder=4)
 
     if data_analysed is not None:
-        ax.plot(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=35, zorder=5)
+        ax.scatter(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=35, zorder=5)
 
     ax.set_title("Сравнение последовательностей")
     ax.set_xlabel("x")
@@ -426,16 +426,16 @@ def draw_data(data = None, type = None, data_analysed = None):
     else:
         raise ValueError(f"\nНекорректный тип отрисовки!\ntype - {type}\n")
     
-def test():
-    data = get_data(func={"type":"root","args":[2.6667,0.45,-3.2]},length=100,scaling=10,mode_noise=1,strength=0.1,sleek=10,mode_miss=11,count=10,seed_noise=111,seed_miss=993)
-
-    print(data["df"].head())
-
-    draw_data(data,3)
 
 
+if __name__ == "__main__":
+    def test():
+        data = get_data(func={"type":"root","args":[2.6667,0.45,-3.2]},length=100,scaling=10,mode_noise=1,strength=0.1,sleek=10,mode_miss=11,count=10,seed_noise=111,seed_miss=993)
 
-test()
+        print(data["df"].head())
+
+        draw_data(data,3)
+    test()
 
 #питон не умеет считать по нецелым, это печельно
 #убрал на тесте, потом что-нибудь придумать
