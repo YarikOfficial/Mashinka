@@ -64,7 +64,7 @@ def ml_isoforest(X: np.ndarray, contamination:float = 0.001, random_state:int = 
 
     return outlier_labels == -1
 
-def ml_lof(X: np.ndarray, n_neighbors:int=5):
+def ml_lof(X: np.ndarray, n_neighbors:int=5) -> np.ndarray:
     """
     Находит выбросы в массиве данных с помощью метода Local Outlier Factor\n
     Получает:\n
@@ -82,13 +82,12 @@ def ml_lof(X: np.ndarray, n_neighbors:int=5):
 
 if __name__ == '__main__':
     import generator as gen
-    import matplotlib.pyplot as plt
 
-    data = gen.get_data(func={"type":"sin","args":[2,0]},length=100,scaling=10,mode_noise=2,strength=0.1,sleek=100,mode_miss=11,count=5,seed_noise=111,seed_miss=993)
+    data = gen.get_data(func={"type":"sin","args":[2,50]},length=100,scaling=10,mode_noise=2,strength=0.1,sleek=100,mode_miss=11,count=5,seed_noise=111,seed_miss=993)
 
     X = get_X(data)
-    #outliers = ml_isoforest(X, 0.001)
-    outliers = ml_lof(X)
+    outliers = ml_isoforest(X, 0.001)
+    #outliers = ml_lof(X, 10)
 
     gen.draw_data(data, 1, outliers)
 
