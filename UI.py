@@ -183,8 +183,8 @@ with st.expander("Настройки генерации"):
     with par3:
         st.session_state.mode_noise = st.selectbox(
             "Режим шума",
-            options=[1, 2],
-            index=[1, 2].index(st.session_state.mode_noise) if st.session_state.mode_noise in [1, 2] else 1,
+            options=[1, 2, 3],
+            index=[1, 2, 3].index(st.session_state.mode_noise) if st.session_state.mode_noise in [1, 2, 3] else 1,
             format_func=lambda x: f"Режим {x}"
         )
     with par4:
