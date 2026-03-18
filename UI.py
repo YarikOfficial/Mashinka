@@ -3,6 +3,8 @@ import streamlit as st
 import generator as gen
 import analyzer as anlz
 import matplotlib.pyplot as plt
+import numpy as np
+import random
 
 def load_config():
     try:
@@ -18,21 +20,40 @@ def load_config():
     
 load_config()
 
-def graphics(data, data_analysed = None):
+def graphics(data, data_analysed_stat = None, data_analysed_ML = None):
     
     fig, axes = plt.subplots(1, 1, figsize=(9.5, 7.8), sharex=True)
 
     x = data["x_line"]
 
     axes.plot(x, data["dataline_miss"], label="Последовательность", color="#6C68AD", linewidth=1.8)
-    axes.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Выбросы", color="#08001D", s=100, zorder=3)
+    axes.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Аномальные точки", color="#08001D", s=100, zorder=3)
+    an_count = np.count_nonzero(data["where"])
 
-    if data_analysed is not None:
+    if data_analysed_stat is not None:
         try:
-            axes.scatter(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="#FF0000", s=100, zorder=4)
+            anf_count = np.count_nonzero(data_analysed_stat)
+            axes.scatter(x[data_analysed_stat], data["dataline_miss"][data_analysed_stat], label="Обнаруженные аномальные точки (статистический метод)", color="#FF0000", s=100, zorder=4)
+            axes.set_title(f"Найдено аномалий: {anf_count} из {an_count}")
         except:
             pass
 
+    if data_analysed_ML is not None:
+        try:
+            anf_count = np.count_nonzero(data_analysed_ML)
+            axes.scatter(x[data_analysed_ML], data["dataline_miss"][data_analysed_ML], label="Обнаруженные аномальные точки (ML метод)", color="#35D814", s=100, zorder=5)
+            axes.set_title(f"Найдено аномалий: {anf_count} из {an_count}")
+        except:
+            pass
+    
+    #ylabels = {
+    #    "linear": f"{pars[0]}x + {pars[1]}",
+    #    "power": f"{pars[1]}x^{pars[0]} + {pars[2]}",
+    #    "root": f"{pars[1]}x^(1/{pars[0]}) + {pars[2]}",
+    #    "sin": f"{pars[0]}sinx + {pars[1]}",
+    #    "cos": f"{pars[0]}cosx + {pars[1]}",
+    #    "tan": f"{pars[0]}tgx + {pars[1]}"
+    #}
     axes.set_xlabel("x", fontsize=14, fontweight='bold')
     axes.set_ylabel("y", fontsize=14, fontweight='bold')
     axes.grid(True, alpha=0.3)
@@ -52,63 +73,52 @@ def init_session_state():
         'count': 10,
         'seed_noise': 111,
         'seed_miss': 993,
-        'outliers': None,
+        'outliers_st': None,
+        'outliers_ML': None,
         'threshold': 3.0,
-        'split': 5
+        'split': 5,
+        'contamination': 0.01,
+        'rand_seed_noise': True,
+        'rand_seed_miss': True,
+        'a': 2.6667,
+        'b': 0.45,
+        'c': 0,
+        'function_type': "Линейная",
+        'form_key': 0
     }
-    
+
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
 
+def refresh_form():
+    st.session_state.form_key += 1
+    st.rerun()
+
 init_session_state()
 
 st.set_page_config(layout="centered", 
-                   page_title="Модель для обнаружения аномалий в числовых последовательностях",
-                   initial_sidebar_state="expanded"
+                   page_title="Модель для обнаружения аномалий в числовых последовательностях"
                 ) 
+
 st.title("Модель для обнаружения аномалий в числовых последовательностях")
 
-with st.form("main_form"):
-
-    function_type = st.selectbox("Выберите функцию", 
-                        ["Линейная", 
-                        "Степенная", 
-                        "Корень", 
-                        "Синус", 
-                        "Косинус", 
-                        "Тангенс"]
-            )
-
-    arg1, arg2, arg3 = st.columns(3)
-
-    with arg1:
-        a = st.number_input("A", value=2.6667)
-    with arg2:
-        b = st.number_input("B", value=0.45)
-    with arg3:
-        c = st.number_input(
-            "C (только для корня и степени)", 
-            disabled = not (function_type in ["Степенная", "Корень"])
-        )
-
-    function_map = {
-        "Линейная": "linear",
-        "Степенная": "power", 
-        "Корень": "root",
-        "Синус": "sin",
-        "Косинус": "cos",
-        "Тангенс": "tan"
+function_map = {
+    "Линейная": "linear",
+    "Степенная": "power", 
+    "Корень": "root",
+    "Синус": "sin",
+    "Косинус": "cos",
+    "Тангенс": "tan"
     }
 
-    type = function_map[function_type]
-    if type in ["power", "root"]:
-        args = [a, b, c]
-    else:
-        args = [a, b]
+type = function_map[st.session_state.function_type]
+if type in ["power", "root"]:
+    args = [st.session_state.a, st.session_state.b, st.session_state.c]
+else:
+    args = [st.session_state.a, st.session_state.b, 666]
 
-
-    data = gen.get_data(func={"type":type,"args":args},
+data = gen.get_data(func={"type":type,"args":args},
                         length=st.session_state.length,
                         scaling=st.session_state.scaling,
                         mode_noise=st.session_state.mode_noise,
@@ -120,125 +130,167 @@ with st.form("main_form"):
                         seed_miss=st.session_state.seed_miss
                     )
 
-    graphics(data, st.session_state.outliers)
-    plt.close('all')
 
-    if st.form_submit_button("Сгенерировать новые данные", type = "primary", use_container_width = True):
-        st.session_state.outliers = None
 
+function_options = ["Линейная", "Степенная", "Корень", "Синус", "Косинус", "Тангенс"]
+func = st.selectbox("Выберите функцию", 
+                    function_options,
+                    index=function_options.index(st.session_state.function_type)
+                )
+st.session_state.function_type = func
+
+arg1, arg2, arg3 = st.columns(3)
+with arg1:
+    a = st.number_input("A", value=st.session_state.a)
+    st.session_state.a = a
+with arg2:
+    b = st.number_input("B", value=st.session_state.b)
+    st.session_state.b = b
+with arg3:
+    st.session_state.c = st.number_input(
+        "C (только для корня и степени)", 
+        disabled = not (st.session_state.function_type in ["Степенная", "Корень"]),
+        value=st.session_state.c
+    )
+
+if st.button("Сгенерировать новые данные", type = "primary", use_container_width = True):
+        if st.session_state.rand_seed_noise:
+            st.session_state.seed_noise = random.randint(0, 1000)
+        if st.session_state.rand_seed_miss:
+            st.session_state.seed_miss = random.randint(0, 1000)
+        st.session_state.outliers_st = None
+        st.session_state.outliers_ML = None
+        st.rerun()
+
+with st.expander("Настройки генерации"):
+
+    par1, par2, par3, par4 = st.columns(4)
+    with par1:
+        st.session_state.length = st.number_input(
+            "Длина",
+            #min_value=1, 
+            #max_value=100, 
+            value=st.session_state.length
+        )
+    with par2:
+        st.session_state.scaling = st.number_input(
+            "Частота дискретизации",
+            #min_value=1, 
+            #max_value=100,
+            value=st.session_state.scaling,
+            help="Масштаб по оси X"
+        )
+    with par3:
+        st.session_state.mode_noise = st.selectbox(
+            "Режим шума",
+            options=[1, 2],
+            index=[1, 2].index(st.session_state.mode_noise) if st.session_state.mode_noise in [1, 2] else 1,
+            format_func=lambda x: f"Режим {x}"
+        )
+    with par4:
+        st.session_state.strength = st.slider(
+            "Интенсивность шума", 
+            min_value=0.0, 
+            max_value=1.0, 
+            value=st.session_state.strength,
+            step=0.01
+        )
+
+    par5, par6, par7 = st.columns(3)
+    with par5:
+        st.session_state.sleek = st.number_input(
+            "Плавность шума",
+            #min_value=1, 
+            #max_value=100, 
+            value=10
+        )
+    with par6:
+        st.session_state.mode_miss = st.selectbox(
+            "Режим выбросов",
+            options=[11, 12, 21, 22, 31, 32],
+            index=[11, 12, 21, 22, 31, 32].index(st.session_state.mode_miss) if st.session_state.mode_miss in [11, 12, 21, 22, 31, 32] else 1,
+            format_func=lambda x: f"Режим {x}",
+            help="""
+            X1 - внесение ошибок по индексам\n
+            X2 - внесение ошибок по аргументам\n
+            1X - 3 сигмы\n
+            2X - вброс на *10\n
+            3X - случайное значение в пределах +-10*arg.
+            """
+        )
+    with par7:
+        st.session_state.count = st.number_input(
+            "Количество выбросов",
+            #min_value=1, 
+            #max_value=100,
+            value=10
+        )
+
+    par8, par8c, par9, par9c = st.columns(4)
+    with par8c:
+        st.session_state.rand_seed_noise = st.checkbox("Случайное размещение шума", value=st.session_state.rand_seed_noise)
+    with par8:
+        st.session_state.seed_noise = st.number_input(
+            "Размещение шума",
+            disabled=st.session_state.rand_seed_noise,
+            #min_value=0, 
+            #max_value=9999,
+            value=st.session_state.seed_noise
+        )
+    with par9c:
+        st.session_state.rand_seed_miss = st.checkbox("Случайное размещение выбросов", value=st.session_state.rand_seed_miss)
+    with par9:
+        st.session_state.seed_miss = st.number_input(
+            "Размещение выбросов",
+            disabled=st.session_state.rand_seed_miss,
+            #min_value=0, 
+            #max_value=9999,
+            value=st.session_state.seed_miss
+        )
+
+with st.expander("Настройки статистического метода"):
+
+    par_st1, par_st2 = st.columns(2)
+    with par_st1:
+        st.session_state.threshold = st.number_input(
+            "Значение Сигма",
+            #min_value=1, 
+            #max_value=100, 
+            value=st.session_state.threshold
+        )
+    with par_st2:
+        st.session_state.split = st.number_input(
+            "Разбиение массива данных",
+            #min_value=1, 
+            #max_value=100,
+            value=st.session_state.split
+        )
+with st.expander("Настройки ML метода"):
+    st.session_state.contamination = st.number_input(
+            "Ожидаемый процент выбросов",
+            #min_value=1, 
+            #max_value=100, 
+            value=st.session_state.contamination
+        )
+    
+with st.form("draw"):    
     but0, but1= st.columns(2)
-
     with but0:
         if st.form_submit_button("Найти аномалии статистическим методом", type = "primary", use_container_width = True):
             dataline = data["dataline_miss"]
-            st.session_state.outliers = anlz.find_outliers(dataline, 
-                                                           threshold=st.session_state.threshold, 
-                                                           split=st.session_state.split
+            st.session_state.outliers_ML = None
+            st.session_state.outliers_st = anlz.zscore_find_outliers(dataline, 
+                                                            threshold=st.session_state.threshold, 
+                                                            split=st.session_state.split
                                                         )
-
+            refresh_form()
     with but1:
-        st.form_submit_button(
-            "Найти аномалии ML методом", 
-            type = "primary", 
-            use_container_width = True,
-            help = "В разработке"
-        )
+        if st.form_submit_button("Найти аномалии ML методом", type = "primary", use_container_width = True):
+            X = anlz.get_X(data)
+            st.session_state.outliers_st = None
+            st.session_state.outliers_ML = None
+            st.session_state.outliers_ML = anlz.ml_isoforest(X, st.session_state.contamination)
+            refresh_form()
 
-
-
-    with st.expander("Настройки генерации"):
-        par1, par2, par3, par4 = st.columns(4)
-        with par1:
-            st.session_state.length = st.number_input(
-                "Длина",
-                #min_value=1, 
-                #max_value=100, 
-                value=st.session_state.length
-            )
-        with par2:
-            st.session_state.scaling = st.number_input(
-                "Растягивание",
-                #min_value=1, 
-                #max_value=100,
-                value=st.session_state.scaling
-            )
-        with par3:
-            st.session_state.mode_noise = st.selectbox(
-                "Режим шума",
-                options=[1, 2],
-                index=[1, 2].index(st.session_state.mode_noise) if st.session_state.mode_noise in [1, 2] else 1,
-                format_func=lambda x: f"Режим {x}"
-            )
-        with par4:
-            st.session_state.strength = st.slider(
-                "Сила шума", 
-                min_value=0.0, 
-                max_value=1.0, 
-                value=st.session_state.strength,
-                step=0.01
-            )
-
-        par5, par6, par7 = st.columns(3)
-
-        with par5:
-            st.session_state.sleek = st.number_input(
-                "Растяжимость шума",
-                #min_value=1, 
-                #max_value=100, 
-                value=10
-            )
-        with par6:
-            st.session_state.mode_miss = st.selectbox(
-                "Режим выбросов",
-                options=[11, 12, 21, 22, 31, 32],
-                index=[11, 12, 21, 22, 31, 32].index(st.session_state.mode_miss) if st.session_state.mode_miss in [11, 12, 21, 22, 31, 32] else 1,
-                format_func=lambda x: f"Режим {x}",
-                help="""
-                X1 - внесение ошибок по индексам\n
-                X2 - внесение ошибок по аргументам\n
-                1X - 3 сигмы\n
-                2X - вброс на *10\n
-                3X - случайное значение в пределах +-10*arg.
-                """
-            )
-        with par7:
-            st.session_state.count = st.number_input(
-                "Количество выбросов",
-                #min_value=1, 
-                #max_value=100,
-                value=10
-            )
-
-        par8, par9 = st.columns(2)
-
-        with par8:
-            st.session_state.seed_noise = st.number_input(
-                "Seed шума",
-                #min_value=0, 
-                #max_value=9999,
-                value=st.session_state.seed_noise
-            )
-        with par9:
-            st.session_state.seed_miss = st.number_input(
-                "Seed выбросов",
-                #min_value=0, 
-                #max_value=9999,
-                value=st.session_state.seed_miss
-            )
-
-    with st.expander("Настройки статистического метода"):
-        par_st1, par_st2 = st.columns(2)
-        with par_st1:
-            st.session_state.threshold = st.number_input(
-                "Значение Сигма",
-                #min_value=1, 
-                #max_value=100, 
-                value=st.session_state.threshold
-            )
-        with par_st2:
-            st.session_state.split = st.number_input(
-                "Разбиение массива данных",
-                #min_value=1, 
-                #max_value=100,
-                value=st.session_state.split
-            )
+    graphics(data, st.session_state.outliers_st, st.session_state.outliers_ML)
+    plt.close('all')
