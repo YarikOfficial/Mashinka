@@ -187,7 +187,7 @@ def get_miss(y, data = None, mode = 0, count = 0, seed = 993):
         raise ValueError(f"\nНеверный режим работы!\nmode - {mode}\n")
 
     if count == 0: #ну вроде логично, как бы
-        vkid = np.array([0])
+        vkid = np.array([])
         data.update({"where":vkid,"seed_mis":seed,"mode":mode})
         return new_y, data
     
@@ -252,6 +252,7 @@ def get_noise(y, data = None, mode = None, strength = 0.05, sleek = 10, seed = 9
     mode:
     1 - +/- strength от значения
     2 - +/- strength от mean
+    3 - +/- strength от среднего в пределах mean или 1
     """
 
     #Защита
@@ -283,6 +284,11 @@ def get_noise(y, data = None, mode = None, strength = 0.05, sleek = 10, seed = 9
         elif mode == 2:
             mean = new_y.mean()
             new_y = new_y + rand.choice([-1,1],size=new_y.shape) * rand.choice(noise,size=new_y.shape) * mean
+        elif mode == 3:
+            mean = new_y.mean()
+            if mean == 0:
+                mean = 1
+            new_y = new_y + rand.choice([-1,1],size=new_y.shape) * rand.choice(noise,size=new_y.shape) * rand.random(1) * mean
         else:
             raise ValueError(f"\nНекорретный режив внесения шума!\nmode - {mode}\n")
             
@@ -315,9 +321,12 @@ def draw_plots(data, data_analysed = None):
     axes[1].legend()
 
     axes[2].plot(x, data["dataline_miss"], label="Шум + выбросы", color="red", linewidth=1.8)
-    axes[2].scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Выбросы", color="black", s=36, zorder=3)
+
+    if np.size(data["where"]) != 0:
+        axes[2].scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Выбросы", color="black", s=36, zorder=3)
     if data_analysed is not None:
         axes[2].scatter(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=20, zorder=4)
+        
     axes[2].set_title("Последовательность с выбросами")
     axes[2].set_xlabel("x")
     axes[2].set_ylabel("y")
@@ -336,7 +345,8 @@ def draw_one_plot(data, data_analysed = None):
     ax.plot(x, data["dataline_noise"], label="С шумом", color="blue", linewidth=1.5, zorder=2)
     ax.plot(x, data["dataline_miss"], label="С выбросами", color="red", linewidth=1.5, zorder=1)
 
-    ax.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Точки выбросов", color="black", s=36, zorder=4)
+    if np.size(data["where"]) != 0:
+        ax.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Точки выбросов", color="black", s=36, zorder=4)
 
     if data_analysed is not None:
         ax.scatter(x[data_analysed], data["dataline_miss"][data_analysed], label="Аномальные точки", color="yellow", s=20, zorder=5)
@@ -430,7 +440,7 @@ def draw_data(data = None, type = None, data_analysed = None):
 
 if __name__ == "__main__":
     def test():
-        data = get_data(func={"type":"linear","args":[2,0]},length=10,scaling=10,mode_noise=2,strength=0.25,sleek=5,mode_miss=12,count=5,seed_noise=111,seed_miss=993)
+        data = get_data(func={"type":"sin","args":[1,0]},length=10,scaling=10,mode_noise=3,strength=0.25,sleek=5,mode_miss=12,count=0,seed_noise=111,seed_miss=993)
 
         print(data["df"].head())
 
