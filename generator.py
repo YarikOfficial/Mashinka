@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def np_gen_func_line(func = None, length = 10, discretisation = 1,):
+def np_gen_func_line(func:dict = None, length:int = 10, discretisation:int = 1,) -> tuple[np.ndarray | None, dict | None]:
     """
     Генератор ряда на основе математический функции.\n
     Поддерживается на данный момент:\n
@@ -87,7 +87,7 @@ def np_gen_func_line(func = None, length = 10, discretisation = 1,):
     return y, data
 
 
-def np_gen_func_wave(func = None, length = 10, accuracy = 1):
+def np_gen_func_wave(func:dict = None, length:int = 10, accuracy:int = 1) -> tuple[np.ndarray | None, dict | None]:
     """
     Генератор ряда на основе математический функции.\n
     Поддерживается на данный момент:\n
@@ -159,7 +159,7 @@ def np_gen_func_wave(func = None, length = 10, accuracy = 1):
     return y, data
 
 
-def get_miss(y, data = None, mode = 0, count = 0, seed = 993):
+def get_miss(y:np.ndarray, data:dict = None, mode:int = 0, count:int = 0, seed:int = 993) -> tuple[np.ndarray | None, dict | None]:
     """
     Внесение помех в снегерированные данные\n
     y - данные\n
@@ -243,7 +243,7 @@ def get_miss(y, data = None, mode = 0, count = 0, seed = 993):
 
     return new_y, data
 
-def get_noise(y, data = None, mode = None, strength = 0.05, sleek = 10, seed = 993):
+def get_noise(y:np.ndarray, data:dict = None, mode:int = None, strength:float = 0.05, sleek:int = 10, seed:int = 993) -> tuple[np.ndarray | None, dict | None]:
     """
     Создания шума в последовательности\n
     mode - тип шума\n
@@ -300,7 +300,7 @@ def get_noise(y, data = None, mode = None, strength = 0.05, sleek = 10, seed = 9
 
     return new_y, data
 
-def draw_plots(data, data_analysed = None):
+def draw_plots(data:dict, data_analysed:np.ndarray | None = None) -> None:
     if data_analysed is not None:
         fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
     else:
@@ -336,7 +336,7 @@ def draw_plots(data, data_analysed = None):
     plt.tight_layout()
     plt.show()
 
-def draw_one_plot(data, data_analysed = None):
+def draw_one_plot(data:dict, data_analysed:np.ndarray | None = None) -> None:
     fig, ax = plt.subplots(figsize=(12, 6))
 
     x = data["x_line"]
@@ -360,7 +360,7 @@ def draw_one_plot(data, data_analysed = None):
     plt.tight_layout()
     plt.show()
 
-def data_get_pd(data = None):
+def data_get_pd(data:dict | None = None) -> None:
     if data is None:
         raise RuntimeError("\nПотерял дату? ИДИ И ИЩИ!\n")
 
@@ -381,7 +381,7 @@ def data_get_pd(data = None):
 
     data.update({"df":df})
 
-def get_data(func = None, length = None, scaling = None, mode_noise = None, strength = None, sleek = None, mode_miss = None, count = None, seed_noise = 993, seed_miss = 993):
+def get_data(func:dict = None, length:int = None, scaling:int = None, mode_noise:int = None, strength:float = None, sleek:int = None, mode_miss:int = None, count:int = None, seed_noise:int = 993, seed_miss:int = 993) -> dict:
     """
     Передайте все аргументы для функций ниже.\n
     Нужны:
@@ -425,7 +425,7 @@ def get_data(func = None, length = None, scaling = None, mode_noise = None, stre
 
     return data
 
-def draw_data(data = None, type = None, data_analysed = None):
+def draw_data(data:dict | None = None, type:int | None = None, data_analysed:np.ndarray | None = None) -> None:
     if data is None:
         raise RuntimeError("\nПотерял дату? ИДИ И ИЩИ!\n")
 
@@ -437,7 +437,6 @@ def draw_data(data = None, type = None, data_analysed = None):
         raise ValueError(f"\nНекорректный тип отрисовки!\ntype - {type}\n")
     
 
-
 if __name__ == "__main__":
     def test():
         data = get_data(func={"type":"sin","args":[1,0]},length=10,scaling=10,mode_noise=3,strength=0.25,sleek=5,mode_miss=12,count=0,seed_noise=111,seed_miss=993)
@@ -446,31 +445,3 @@ if __name__ == "__main__":
 
         draw_data(data,1)
     test()
-
-#питон не умеет считать по нецелым, это печельно
-#убрал на тесте, потом что-нибудь придумать
-
-#и сразу в ячейку применять тоже
-#значит везде append проставить надо будет
-
-#===
-
-#исправил добавление значения везде
-#исправил дискретизацию
-#исправил обработку отрицательных
-
-#===
-
-#Переделал на np вид
-#убрал синусы нахуй, потом мб добавлю
-
-#===
-
-#сделал генератор шума
-#сделал почти всё
-#пофиксил некоторое дерьмо
-
-#===
-
-#сделал общую дату
-#сделал общие функции
