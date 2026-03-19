@@ -8,8 +8,8 @@ def np_gen_func_line(func:dict = None, length:int = 10, discretisation:int = 1,)
 
     Поддерживаемые типы:
     - "linear": args = [a, b]
-    - "power": args = [power, a, b]
-    - "root": args = [power, a, b]
+    - "power": args = [a, b, power]
+    - "root": args = [a, b, power]
 
     Параметры:
     - func: словарь вида {"type": str, "args": list}
@@ -61,9 +61,9 @@ def np_gen_func_line(func:dict = None, length:int = 10, discretisation:int = 1,)
             y = a*x+b
 
         elif func["type"] == "power":
-            power = func["args"][0]
-            a = func["args"][1]
-            b = func["args"][2]
+            power = func["args"][2]
+            a = func["args"][0]
+            b = func["args"][1]
 
             if power < 1 and power > -1:
                 raise ValueError(f"\nДля таких параметров есть root функция!\npower - {power}\n")
@@ -73,13 +73,13 @@ def np_gen_func_line(func:dict = None, length:int = 10, discretisation:int = 1,)
             y = a*np.pow(x,power)+b
 
         elif func["type"] == "root":
-            power = func["args"][0]
+            power = func["args"][2]
 
             if power == 0:
                 raise ZeroDivisionError(f"\nЧё, самый умный?!\npower - {power}\n")
 
-            a = func["args"][1]
-            b = func["args"][2]
+            a = func["args"][0]
+            b = func["args"][1]
             
             if power < 1 and power > -1:
                 raise ValueError(f"\nДля таких параметров есть power функция!\npower - {power}\n")
