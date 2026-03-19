@@ -582,9 +582,9 @@ def draw_data(data:dict | None = None, type:int | None = None, data_analysed:np.
 
 if __name__ == "__main__":
     def test():
-        data = get_data(func={"type":"tan","args":[1,0]},length=10,scaling=10,mode_noise=1,strength=0.25,sleek=10,mode_miss=11,count=4,seed_noise=111,seed_miss=993)
+        data = get_data(func={"type":"tan","args":[4,4]},length=10,scaling=10,mode_noise=1,strength=0.25,sleek=10,mode_miss=11,count=4,seed_noise=111,seed_miss=993)
 
         print(data["df"].head())
 
-        draw_data(data,1)
+        draw_data(data,3)
     test()
