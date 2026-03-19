@@ -588,11 +588,3 @@ if __name__ == "__main__":
 
         draw_data(data,1)
     test()
-
-    # x = np.linspace(0,10,101)
-    # y = np.tan(x)
-
-    
-    # plt.plot(x, y)
-    # plt.grid(True)
-    # plt.show()
