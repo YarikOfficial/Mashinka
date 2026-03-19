@@ -4,21 +4,30 @@ import pandas as pd
 
 def np_gen_func_line(func:dict = None, length:int = 10, discretisation:int = 1,) -> tuple[np.ndarray | None, dict | None]:
     """
-    Генератор ряда на основе математический функции.\n
-    Поддерживается на данный момент:\n
-    Линейная - "linear" args = [коэфф.;свободный]\n
-    Степенная - "power" args = [степень;коэфф.;свободный]\n
-    Корень - "root" args = [степень;коэфф.;свободный]\n
-    \n
-    func - словарь с ключами:\n
-    "type" - где хранится тип функции в строке\n
-    "args" - список аргументов к необходимой функции\n
-    \n
-    length - кол-во значений x обрабатываемых функцией\n
-    \n
-    discretisation - как сильно будет одно значение обрабатываться\n
-    \n
-    do_negative - будет ли обработка с отрицательных значений\n
+    Генерирует числовой ряд по обычной математической функции.
+
+    Поддерживаемые типы:
+    - "linear": args = [a, b]
+    - "power": args = [power, a, b]
+    - "root": args = [power, a, b]
+
+    Параметры:
+    - func: словарь вида {"type": str, "args": list}
+    - length: длина ряда, должно быть > 0
+    - discretisation: степень дискретизации, должно быть > 0
+
+    Ограничения:
+    - Для power и root:
+    - - Брать значения в пределах (-1,1) нельзя
+    - - При значении (-inf;-1] x = 0 удаляется
+
+    Возвращает:
+    - y: массив значений функции
+    - data: словарь со служебными данными
+
+    При ошибке:
+    - Возвращает (None, None)
+    - Вызывает исключение при некорректных входных данных
     """
 
     #Защита
@@ -52,57 +61,73 @@ def np_gen_func_line(func:dict = None, length:int = 10, discretisation:int = 1,)
             y = a*x+b
 
         elif func["type"] == "power":
-            #если степень (-1,1), слать нахуй
-            #если она меньше 0, то у нас число наше будет 1/x
-            #если чётная, и x <0, то брать как -(|x|^stepen)
-            #если нечётная, то и так вроде должен пахать
-            stepen = func["args"][0]
+            power = func["args"][0]
             a = func["args"][1]
             b = func["args"][2]
 
-            y = a*np.pow(x,stepen)+b
+            if power < 1 and power > -1:
+                raise ValueError(f"\nДля таких параметров есть root функция!\npower - {power}\n")
+            elif power <= -1:
+                x = x[1:]
+
+            y = a*np.pow(x,power)+b
 
         elif func["type"] == "root":
-            #если она опять же (-1,1), слать нахуй
-            #остальные правила примерно тоже описаны, так что делаем, потом
-            stepen = func["args"][0]
+            power = func["args"][0]
 
-            if stepen == 0:
-                raise ZeroDivisionError(f"\nЧё, самый умный?!\nstepen - {stepen}\n")
+            if power == 0:
+                raise ZeroDivisionError(f"\nЧё, самый умный?!\npower - {power}\n")
 
             a = func["args"][1]
             b = func["args"][2]
             
-            y = a*np.pow(x,1/stepen)+b
+            if power < 1 and power > -1:
+                raise ValueError(f"\nДля таких параметров есть power функция!\npower - {power}\n")
+            elif power <= -1:
+                x = x[1:]
+            
+            y = a*np.pow(x,1/power)+b
 
         else:
             raise ValueError(f"\nНекорректный тип функции!\ntype - {func["type"]}\n")
+    except ValueError:
+        raise
+    except ZeroDivisionError:
+        raise
     except Exception as e:
         print(f"Ошибка создания значений числовой последовательности!\n=====\n{e}")
         return None, None
         
     data = {}
-    data.update({"TOTALlen":len(y),"length":length,"discr":discretisation,"type":func["type"],"x_line":x,"x_clear":np.arange(length+1)})
+    data.update({"TOTALlen":len(y),"length":length,"discr":discretisation,"type":func["type"],"x_line":x})
     
     return y, data
 
 
 def np_gen_func_wave(func:dict = None, length:int = 10, accuracy:int = 1) -> tuple[np.ndarray | None, dict | None]:
     """
-    Генератор ряда на основе математический функции.\n
-    Поддерживается на данный момент:\n
-    Синусоида - "sin" args = [коэфф.;свободный]\n
-    Косинусоида - "cos" args = [коэфф.;свободный]\n
-    Тангенсоида - "tan" args = [коэфф.;свободный]\n
-    \n
-    func - словарь с ключами:\n
-    "type" - где хранится тип функции в строке\n
-    "args" - список аргументов к необходимой функции\n
-    \n
-    length - кол-во значений x обрабатываемых функцией\n
-    \n
-    accuracy - кол-во точек на обороте*16\n
-    \n
+    Генерирует числовой ряд по тригонометрической функции.
+
+    Поддерживаемые типы:
+    - "sin": args = [a, b]
+    - "cos": args = [a, b]
+    - "tan": args = [a, b]
+
+    Параметры:
+    - func: словарь вида {"type": str, "args": list}
+    - length: длина ряда, должно быть > 0
+    - accuracy: точность построения, должно быть > 0
+
+    Ограничения:
+    - Никаких, удачи
+
+    Возвращает:
+    - y: массив значений функции
+    - data: словарь со служебными данными
+
+    При ошибке:
+    - Возвращает (None, None)
+    - Вызывает исключение при некорректных входных данных
     """
 
     #Защита
@@ -142,6 +167,8 @@ def np_gen_func_wave(func:dict = None, length:int = 10, accuracy:int = 1) -> tup
             y = a*np.cos(x)+b
 
         elif func["type"] == "tan":
+            x = x + (2 * np.pi * length / (16 * accuracy * length)) / 2
+
             a = func["args"][0]
             b = func["args"][1]
 
@@ -149,29 +176,46 @@ def np_gen_func_wave(func:dict = None, length:int = 10, accuracy:int = 1) -> tup
 
         else:
             raise ValueError(f"\nНекорректный тип функции!\ntype - {func["type"]}\n")
+    except ValueError:
+        raise
     except Exception as e:
         print(f"Ошибка создания значений числовой последовательности!\n=====\n{e}")
         return None, None
         
     data = {}
-    data.update({"TOTALlen":len(y),"length":length,"acc":16*accuracy,"type":func["type"],"x_line":x,"x_clear":np.arange(length+1)})
+    data.update({"TOTALlen":len(y),"length":length,"acc":16*accuracy,"type":func["type"],"x_line":x})
     
     return y, data
 
-
 def get_miss(y:np.ndarray, data:dict = None, mode:int = 0, count:int = 0, seed:int = 993) -> tuple[np.ndarray | None, dict | None]:
     """
-    Внесение помех в снегерированные данные\n
-    y - данные\n
-    data - вместе с данными должны идти\n
-    mode - режим работы\n
-    count - кол-во ошибок\n
-    mode:
-    X1 - внесение ошибок по индексам
-    X2 - внесение ошибок по аргументам
-    1X - 3 сигмы
-    2X - вброс на *10
-    3X - случайное значение в пределах +-10*arg
+    Добавляет выбросы в готовый числовой ряд.
+
+    Параметры:
+    - y: исходный массив данных
+    - data: словарь со служебными данными ряда
+    - mode: режим внесения выбросов
+    - count: количество выбросов, должно быть >= 0 и < length при X2 или < TOTALlen при X1
+    - seed: seed генератора случайных чисел
+
+    Режимы:
+    - X1: выбор по индексам
+    - X2: выбор по аргументам
+    - 1X: 3 сигмы
+    - 2X: умножение на 10
+    - 3X: случайное значение в пределах ±10*arg
+
+    Ограничения:
+    - Никаких, удачи
+    - При слишком большом count будет страшно
+
+    Возвращает:
+    - new_y: массив с выбросами
+    - data: обновлённый словарь данных
+
+    При ошибке:
+    - Возвращает (None, None)
+    - Вызывает исключение при некорректных входных данных
     """
 
     #Защита
@@ -217,6 +261,8 @@ def get_miss(y:np.ndarray, data:dict = None, mode:int = 0, count:int = 0, seed:i
                 vkid = (args[:, None] * data["acc"] + np.arange(data["acc"])).ravel()
         else:
             raise ValueError(f"\nНекорректный режим выбора!\nwhere - {where}\n")
+    except ValueError:
+        raise
     except Exception as e:
         print(f"Ошибка создания точек вброса!\n=====\n{e}")
         return None, None
@@ -235,6 +281,8 @@ def get_miss(y:np.ndarray, data:dict = None, mode:int = 0, count:int = 0, seed:i
             new_y[vkid] = rand.choice([-1,1],size=new_y[vkid].shape)*10*rand.random(size=new_y[vkid].shape)*np.abs(new_y[vkid])
         else:
             raise ValueError(f"\nНекорректный режим вставки!\nwhich - {which}\n")
+    except ValueError:
+        raise
     except Exception as e:
         print(f"Ошибка внесения вброса!\n=====\n{e}")
         return None, None
@@ -245,14 +293,31 @@ def get_miss(y:np.ndarray, data:dict = None, mode:int = 0, count:int = 0, seed:i
 
 def get_noise(y:np.ndarray, data:dict = None, mode:int = None, strength:float = 0.05, sleek:int = 10, seed:int = 993) -> tuple[np.ndarray | None, dict | None]:
     """
-    Создания шума в последовательности\n
-    mode - тип шума\n
-    strength - предел шума\n
-    sleek - дробность предела\n
-    mode:
-    1 - +/- strength от значения
-    2 - +/- strength от mean
-    3 - +/- strength от среднего в пределах mean или 1
+    Добавляет шум в числовой ряд.
+
+    Параметры:
+    - y: исходный массив данных
+    - data: словарь со служебными данными ряда
+    - mode: режим шума
+    - strength: сила шума, должно быть >= 0
+    - sleek: дробность шума, должно быть >= 0
+    - seed: seed генератора случайных чисел
+
+    Режимы:
+    - 1: шум относительно значения
+    - 2: шум относительно среднего
+    - 3: шум относительно случайной доли среднего
+
+    Ограничения:
+    - strength >= 1 будет давать шум в среднем больше самой последовательности, не рекомендуется
+
+    Возвращает:
+    - new_y: массив с шумом
+    - data: обновлённый словарь данных
+
+    При ошибке:
+    - Возвращает (None, None)
+    - Вызывает исключение при некорректных входных данных
     """
 
     #Защита
@@ -270,7 +335,7 @@ def get_noise(y:np.ndarray, data:dict = None, mode:int = None, strength:float = 
     if strength < 0:
         raise ValueError(f"\nНекорректное значение разброса\nstrength - {strength}\n")
     
-    if sleek <= 0:
+    if sleek < 0:
         raise ValueError(f"\nНекорректное значение дробности\nsleek - {sleek}\n")
 
     #Создание шума
@@ -291,7 +356,8 @@ def get_noise(y:np.ndarray, data:dict = None, mode:int = None, strength:float = 
             new_y = new_y + rand.choice([-1,1],size=new_y.shape) * rand.choice(noise,size=new_y.shape) * rand.random(1) * mean
         else:
             raise ValueError(f"\nНекорретный режив внесения шума!\nmode - {mode}\n")
-            
+    except ValueError:
+        raise
     except Exception as e:
         print(f"Ошибка внесения шума!\n=====\n{e}")
         return None, None
@@ -301,10 +367,24 @@ def get_noise(y:np.ndarray, data:dict = None, mode:int = None, strength:float = 
     return new_y, data
 
 def draw_plots(data:dict, data_analysed:np.ndarray | None = None) -> None:
-    if data_analysed is not None:
-        fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
-    else:
-        fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
+    """
+    Рисует три отдельных графика:
+    чистый ряд, ряд с шумом и ряд с выбросами.
+
+    Параметры:
+    - data: словарь с подготовленными данными
+
+    Опционально:
+    - data_analysed: индексы найденных аномальных точек
+
+    Ограничения:
+    - Молитесь на словарь
+
+    Возвращает:
+    - Красивая (опционально) картинка
+    """
+
+    fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
 
     x = data["x_line"]
 
@@ -337,6 +417,22 @@ def draw_plots(data:dict, data_analysed:np.ndarray | None = None) -> None:
     plt.show()
 
 def draw_one_plot(data:dict, data_analysed:np.ndarray | None = None) -> None:
+    """
+    Рисует один общий график для сравнения рядов.
+
+    Параметры:
+    - data: словарь с подготовленными данными
+
+    Опционально:
+    - data_analysed: индексы найденных аномальных точек
+
+    Ограничения:
+    - Молитесь на словарь
+
+    Возвращает:
+    - Красивая (опционально) картинка
+    """
+
     fig, ax = plt.subplots(figsize=(12, 6))
 
     x = data["x_line"]
@@ -361,6 +457,20 @@ def draw_one_plot(data:dict, data_analysed:np.ndarray | None = None) -> None:
     plt.show()
 
 def data_get_pd(data:dict | None = None) -> None:
+    """
+    Собирает pandas.DataFrame из подготовленных данных
+    и сохраняет его в словарь data.
+
+    Параметры:
+    - data: словарь с рядами и служебными полями
+
+    Ограничения:
+    - Молитесь на словарь
+
+    Возвращает:
+    - Ничего
+    """
+
     if data is None:
         raise RuntimeError("\nПотерял дату? ИДИ И ИЩИ!\n")
 
@@ -381,19 +491,31 @@ def data_get_pd(data:dict | None = None) -> None:
 
     data.update({"df":df})
 
-def get_data(func:dict = None, length:int = None, scaling:int = None, mode_noise:int = None, strength:float = None, sleek:int = None, mode_miss:int = None, count:int = None, seed_noise:int = 993, seed_miss:int = 993) -> dict:
+def get_data(func:dict | None = None, length:int | None = None, scaling:int | None = None, mode_noise:int | None = None, strength:float | None = None, sleek:int | None = None, mode_miss:int | None = None, count:int | None = None, seed_noise:int = 993, seed_miss:int = 993) -> dict:
     """
-    Передайте все аргументы для функций ниже.\n
-    Нужны:
-    1) Сама функция
-    2) Желаемая длина
-    3) Желаемое растягивание (точность)
-    4) Сила шума
-    5) Растяжимость шума
-    6) Режим внесения вброса
-    7) Кол-во вбросов
-    8) Сид (по желанию)\n
-    Подробнее написано в самих функциях\n
+    Полностью собирает данные:
+    генерация ряда, добавление шума, добавление выбросов и создание DataFrame.
+
+    Параметры:
+    - func: словарь с описанием функции
+    - length: длина ряда
+    - scaling: дискретизация или точность
+    - mode_noise: режим шума
+    - strength: сила шума
+    - sleek: дробность шума
+    - mode_miss: режим выбросов
+    - count: количество выбросов
+    - seed_noise: seed для шума
+    - seed_miss: seed для выбросов
+
+    Ограничения:
+    - Изучите документацию остальных функций, там всё написано
+
+    Возвращает:
+    - data: словарь со всеми подготовленными данными
+
+    При ошибке:
+    - Вызывает исключение
     """
 
     if func is None or length is None or scaling is None or strength is None or sleek is None or mode_miss is None or mode_noise is None or count is None:
@@ -426,6 +548,27 @@ def get_data(func:dict = None, length:int = None, scaling:int = None, mode_noise
     return data
 
 def draw_data(data:dict | None = None, type:int | None = None, data_analysed:np.ndarray | None = None) -> None:
+    """
+    Вызывает нужный способ отрисовки данных.
+
+    Параметры:
+    - data: словарь с подготовленными данными
+    - type: тип отрисовки
+
+    Опционально:
+    - data_analysed: индексы найденных аномальных точек
+
+    Поддерживаемые типы:
+    - 1: один общий график
+    - 3: три отдельных графика
+
+    Ограничения:
+    - Никаких, удачи
+
+    Возвращает:
+    - Картинка
+    """
+
     if data is None:
         raise RuntimeError("\nПотерял дату? ИДИ И ИЩИ!\n")
 
@@ -439,9 +582,17 @@ def draw_data(data:dict | None = None, type:int | None = None, data_analysed:np.
 
 if __name__ == "__main__":
     def test():
-        data = get_data(func={"type":"sin","args":[1,0]},length=10,scaling=10,mode_noise=3,strength=0.25,sleek=5,mode_miss=12,count=0,seed_noise=111,seed_miss=993)
+        data = get_data(func={"type":"tan","args":[1,0]},length=10,scaling=10,mode_noise=1,strength=0.25,sleek=10,mode_miss=11,count=4,seed_noise=111,seed_miss=993)
 
         print(data["df"].head())
 
         draw_data(data,1)
     test()
+
+    # x = np.linspace(0,10,101)
+    # y = np.tan(x)
+
+    
+    # plt.plot(x, y)
+    # plt.grid(True)
+    # plt.show()
