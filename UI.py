@@ -80,9 +80,9 @@ def init_session_state():
         'contamination': 0.01,
         'rand_seed_noise': True,
         'rand_seed_miss': True,
-        'a': 2.6667,
-        'b': 0.45,
-        'c': 0,
+        'a': 1,
+        'b': 1,
+        'c': 1,
         'function_type': "Линейная",
         'form_key': 0
     }
