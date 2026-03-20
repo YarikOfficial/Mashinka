@@ -66,7 +66,10 @@ def np_gen_func_line(func:dict = None, length:int = 10, discretisation:int = 1,)
             b = func["args"][1]
 
             if power < 1 and power > -1:
-                raise ValueError(f"\nДля таких параметров есть root функция!\npower - {power}\n")
+                if power == 0:
+                    pass
+                else:
+                    raise ValueError(f"\nДля таких параметров есть root функция!\npower - {power}\n")
             elif power <= -1:
                 x = x[1:]
 
@@ -75,14 +78,14 @@ def np_gen_func_line(func:dict = None, length:int = 10, discretisation:int = 1,)
         elif func["type"] == "root":
             power = func["args"][2]
 
-            if power == 0:
-                raise ZeroDivisionError(f"\nЧё, самый умный?!\npower - {power}\n")
-
             a = func["args"][0]
             b = func["args"][1]
             
             if power < 1 and power > -1:
-                raise ValueError(f"\nДля таких параметров есть power функция!\npower - {power}\n")
+                if power == 0:
+                    raise ZeroDivisionError(f"\nЧё, самый умный?!\npower - {power}\n")
+                else:
+                    raise ValueError(f"\nДля таких параметров есть power функция!\npower - {power}\n")
             elif power <= -1:
                 x = x[1:]
             
