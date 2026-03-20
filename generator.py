@@ -147,7 +147,7 @@ def np_gen_func_wave(func:dict = None, length:int = 10, accuracy:int = 1) -> tup
 
     #Генератор последовательности
     try:
-        x = np.linspace(0,2*np.pi*length,16*accuracy*length+1,endpoint=True,dtype=np.float64)
+        x = np.linspace(0,2*np.pi*(length//6),16*accuracy*(length//6)+1,endpoint=True,dtype=np.float64)
     except Exception as e:
         print(f"Ошибка создания аргументов числовой последовательности!\n=====\n{e}")
         return None, None
@@ -170,7 +170,7 @@ def np_gen_func_wave(func:dict = None, length:int = 10, accuracy:int = 1) -> tup
             y = a*np.cos(x)+b
 
         elif func["type"] == "tan":
-            x = x + (2 * np.pi * length / (16 * accuracy * length)) / 2
+            x = x + (2 * np.pi * (length//6) / (16 * accuracy * (length//6))) / 2
 
             a = func["args"][0]
             b = func["args"][1]
@@ -585,7 +585,7 @@ def draw_data(data:dict | None = None, type:int | None = None, data_analysed:np.
 
 if __name__ == "__main__":
     def test():
-        data = get_data(func={"type":"tan","args":[4,4]},length=10,scaling=10,mode_noise=1,strength=0.25,sleek=10,mode_miss=11,count=4,seed_noise=111,seed_miss=993)
+        data = get_data(func={"type":"tan","args":[3,0]},length=100,scaling=100,mode_noise=2,strength=0.25,sleek=50,mode_miss=31,count=10,seed_noise=111,seed_miss=993)
 
         print(data["df"].head())
 
