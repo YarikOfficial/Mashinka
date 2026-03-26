@@ -85,7 +85,9 @@ def init_session_state():
         'b': 1,
         'c': 1,
         'function_type': "Линейная",
-        'form_key': 0
+        'form_key': 0,
+        'meth_type': "Isolation Forest",
+        'neigh': 5
     }
 
     for key, value in defaults.items():
@@ -277,12 +279,29 @@ with st.expander("Настройки статистического метода
             value=st.session_state.split
         )
 with st.expander("Настройки ML метода"):
-    st.session_state.contamination = st.number_input(
-            "Ожидаемый процент выбросов",
-            #min_value=1, 
-            #max_value=100, 
-            value=st.session_state.contamination
-        )
+    meth_options = ["Isolation Forest", "Local Outlier Factor"]
+    meth = st.selectbox("Выберите метод", 
+                        meth_options,
+                        index=meth_options.index(st.session_state.meth_type)
+                    )
+    st.session_state.meth_type = meth
+    par9, par10 = st.columns(2)
+    with par9:
+        st.session_state.contamination = st.number_input(
+                "Ожидаемый процент выбросов",
+                disabled=not(st.session_state.meth_type=="Isolation Forest"),
+                #min_value=1, 
+                #max_value=100, 
+                value=st.session_state.contamination
+            )
+    with par10:
+        st.session_state.neigh = st.number_input(
+                "Количество ближайших соседей",
+                disabled=not(st.session_state.meth_type=="Local Outlier Factor"),
+                #min_value=1, 
+                #max_value=100, 
+                value=st.session_state.neigh
+            )
     
 with st.form("draw"):    
     but0, but1= st.columns(2)
@@ -300,7 +319,10 @@ with st.form("draw"):
             X = anlz.get_X(data)
             st.session_state.outliers_st = None
             st.session_state.outliers_ML = None
-            st.session_state.outliers_ML = anlz.ml_isoforest(X, st.session_state.contamination)
+            if st.session_state.meth_type == "Isolation Forest":
+                st.session_state.outliers_ML = anlz.ml_isoforest(X, st.session_state.contamination)
+            elif st.session_state.meth_type == "Local Outlier Factor":
+                st.session_state.outliers_ML = anlz.ml_lof(X, st.session_state.neigh)
             refresh_form()
 
     graphics(data, type, args, st.session_state.outliers_st, st.session_state.outliers_ML)
