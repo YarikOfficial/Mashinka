@@ -5,6 +5,7 @@ import analyzer as anlz
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+from sklearn.metrics import f1_score
 
 def load_config():
     try:
@@ -28,21 +29,18 @@ def graphics(data, type, pars, data_analysed_stat = None, data_analysed_ML = Non
 
     axes.plot(x, data["dataline_miss"], label="Последовательность", color="#6C68AD", linewidth=1.8)
     axes.scatter(x[data["where"]], data["dataline_miss"][data["where"]], label="Аномальные точки", color="#08001D", s=100, zorder=3)
-    an_count = np.count_nonzero(data["where"])
 
     if data_analysed_stat is not None:
         try:
-            anf_count = np.count_nonzero(data_analysed_stat)
             axes.scatter(x[data_analysed_stat], data["dataline_miss"][data_analysed_stat], label="Обнаруженные аномальные точки (статистический метод)", color="#FF0000", s=100, zorder=4)
-            axes.set_title(f"Найдено аномалий: {anf_count} из {an_count}")
+            axes.set_title(f"F1 score = {f1_score(np.array(data['df']['is_miss']), data_analysed_stat, average='macro')}")
         except:
             pass
 
     if data_analysed_ML is not None:
         try:
-            anf_count = np.count_nonzero(data_analysed_ML)
             axes.scatter(x[data_analysed_ML], data["dataline_miss"][data_analysed_ML], label="Обнаруженные аномальные точки (ML метод)", color="#35D814", s=100, zorder=5)
-            axes.set_title(f"Найдено аномалий: {anf_count} из {an_count}")
+            axes.set_title(f"F1 score = {f1_score(np.array(data['df']['is_miss']), data_analysed_ML, average='macro')}")
         except:
             pass
     
@@ -234,7 +232,7 @@ with st.expander("Настройки генерации"):
     with par6:
         st.session_state.count = st.number_input(
             "Количество выбросов",
-            #min_value=1, 
+            min_value=0, 
             #max_value=100,
             value=10
         )
@@ -246,8 +244,8 @@ with st.expander("Настройки генерации"):
         st.session_state.seed_noise = st.number_input(
             "Сид шума",
             disabled=st.session_state.rand_seed_noise,
-            #min_value=0, 
-            #max_value=9999,
+            min_value=0, 
+            max_value=9999,
             value=st.session_state.seed_noise
         )
     with par8c:
@@ -256,8 +254,8 @@ with st.expander("Настройки генерации"):
         st.session_state.seed_miss = st.number_input(
             "Сид выбросов",
             disabled=st.session_state.rand_seed_miss,
-            #min_value=0, 
-            #max_value=9999,
+            min_value=0, 
+            max_value=9999,
             value=st.session_state.seed_miss
         )
 
